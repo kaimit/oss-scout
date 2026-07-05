@@ -10,6 +10,7 @@ from . import brief as brief_mod
 from . import config, db
 from . import discover as discover_mod
 from . import drafts as drafts_mod
+from . import export_web as export_mod
 from . import propose as propose_mod
 from .github_api import GitHubError
 from .llm import LLMError
@@ -43,7 +44,9 @@ def _print_candidates(items, title, show_status=False):
 
 
 def cmd_discover(args):
-    items = discover_mod.discover(args.language, args.since)
+    items = discover_mod.discover(
+        args.language, args.since, domain="agent" if args.domain == "agent" else None
+    )
     if not items:
         console.print("[yellow]没有发现候选仓库[/yellow]")
         return
@@ -95,7 +98,9 @@ def cmd_draft(args):
 
 
 def cmd_run(args):
-    items = discover_mod.discover(args.language, args.since)
+    items = discover_mod.discover(
+        args.language, args.since, domain="agent" if args.domain == "agent" else None
+    )
     if not items:
         console.print("[yellow]没有发现候选仓库[/yellow]")
         return
@@ -121,6 +126,12 @@ def cmd_run(args):
     )
 
 
+def cmd_export(args):
+    path, n = export_mod.export_web()
+    console.print("[green]✓[/green] 已导出 {} 个已分析项目 → {}".format(n, path))
+    console.print("web 仪表盘会读这个文件展示提案（部署见 web/README.md）")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="oss-scout",
@@ -131,6 +142,8 @@ def main():
     p = sub.add_parser("discover", help="抓取 GitHub trending（失败自动回退 search API）")
     p.add_argument("--language", "-l", default=None, help="如 python / rust / typescript")
     p.add_argument("--since", choices=["daily", "weekly", "monthly"], default="daily")
+    p.add_argument("--domain", choices=["all", "agent"], default="all",
+                   help="限定领域，agent = 只找 AI agent 相关项目")
     p.set_defaults(func=cmd_discover)
 
     p = sub.add_parser("list", help="查看候选池与各仓库处理状态")
@@ -159,7 +172,12 @@ def main():
     p.add_argument("--language", "-l", default=None)
     p.add_argument("--since", choices=["daily", "weekly", "monthly"], default="daily")
     p.add_argument("--top", type=int, default=3)
+    p.add_argument("--domain", choices=["all", "agent"], default="all",
+                   help="限定领域，agent = 只找 AI agent 相关项目")
     p.set_defaults(func=cmd_run)
+
+    p = sub.add_parser("export", help="导出已分析项目到 web/data/reports.json 供仪表盘展示")
+    p.set_defaults(func=cmd_export)
 
     args = parser.parse_args()
     try:

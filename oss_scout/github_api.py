@@ -93,3 +93,20 @@ def search_recent(language=None, days=7, min_stars=50, per_page=25):
         q += ' language:"{}"'.format(language)
     d = get("/search/repositories", q=q, sort="stars", order="desc", per_page=per_page)
     return d.get("items", [])
+
+
+# GitHub search 最多 5 个逻辑操作符 → 6 个关键词（5 个 OR）为上限
+AGENT_QUERY = (
+    "agent OR agentic OR llm OR autonomous OR rag OR mcp "
+    "in:name,description"
+)
+
+
+def search_agents(language=None, days=90, min_stars=40, per_page=30):
+    """搜近期活跃的 AI agent 相关项目（name/description 含 agent 关键词）。"""
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
+    q = "{} pushed:>{} stars:>={}".format(AGENT_QUERY, since, min_stars)
+    if language:
+        q += ' language:"{}"'.format(language)
+    d = get("/search/repositories", q=q, sort="stars", order="desc", per_page=per_page)
+    return d.get("items", [])
