@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-07-05T07:43:53+00:00",
+  "reports": {
+    "rommapp/romm": {
+      "meta": {
+        "full_name": "rommapp/romm",
+        "description": "A beautiful, powerful, self-hosted rom manager and player.",
+        "stars": 10236,
+        "forks": 494,
+        "open_issues": 171,
+        "topics": [
+          "emulation",
+          "open-source",
+          "retrogaming",
+          "rommapp",
+          "self-hosted"
+        ],
+        "license_spdx": "AGPL-3.0",
+        "pushed_at": "2026-07-05T02:28:30Z",
+        "days_since_push": 0,
+        "default_branch": "master",
+        "languages": {
+          "Python": 3961699,
+          "Vue": 3522900,
+          "TypeScript": 988239,
+          "CSS": 54030,
+          "Shell": 18586,
+          "JavaScript": 11635,
+          "Dockerfile": 11317,
+          "HTML": 1763,
+          "Mako": 510
+        }
+      },
+      "license_policy": {
+        "spdx": "AGPL-3.0",
+        "allow_upstream_pr": true,
+        "allow_companion": true,
+        "companion_must_same_license": true,
+        "notes": [
+          "Copyleft 许可证（AGPL-3.0）：衍生作品必须使用相同许可证并保留版权声明。",
+          "上游活跃维护中：优先 upstream PR，避免生态碎片化。"
+        ]
+      },
+      "proposals": [
+        {
+          "title": "扫描容错：单个 provider 失败不再中断全局",
+          "strategy": "upstream_pr",
+          "type": "bugfix",
+          "impact": 5,
+          "effort": "M",
+          "rationale": "当前单个元数据 provider（Hasheous/RetroAchievements）请求失败会导致整个扫描中断，是新贡献者投入产出比最高的切入点。加 try/except + 可配置重试/超时，失败时跳过单个 ROM，边界清晰、风险低。",
+          "evidence": "#2236（provider 失败中断扫描，无重试/超时配置）",
+          "acceptance_criteria": [
+            "provider 请求失败时跳过当前 ROM 并继续扫描，不中断整体流程",
+            "新增可配置的重试次数与超时环境变量",
+            "失败被记录到日志/扫描报告，用户可自查",
+            "针对失败跳过逻辑补充 pytest 单元测试"
+          ]
+        },
+        {
+          "title": "多碟大文件 zip 打包损坏修复（ZIP64）",
+          "strategy": "upstream_pr",
+          "type": "bugfix",
+          "impact": 5,
+          "effort": "M",
+          "rationale": "多碟 PSX 游戏（1.2GB）打包 zip 无法解压是当前最高热度 bug，很可能是 ZIP64/大文件流式打包缺陷。属明确 bug，修复直接解决下载损坏痛点。",
+          "evidence": "#3526（多碟打包 zip 无法解压，extra data overflow，20 评论）",
+          "acceptance_criteria": [
+            "定位并修复大文件/多碟 zip 打包的 overflow 问题",
+            "开启 ZIP64 支持，>1GB 打包可正确解压",
+            "补充大文件打包的回归测试或验证用例"
+          ]
+        },
+        {
+          "title": "LaunchBox 匹配增加字符规范化与模糊回退",
+          "strategy": "upstream_pr",
+          "type": "feature",
+          "impact": 4,
+          "effort": "S",
+          "rationale": "精确匹配对含 OS 非法字符、风格化标题的游戏失败。在精确匹配失败后加一层字符剥离 + fuzzy fallback，逻辑集中、可独立提交。",
+          "evidence": "#3095、#3505（LaunchBox 抓取失效，缺乏模糊匹配）",
+          "acceptance_criteria": [
+            "精确匹配失败后触发规范化（剥离 * ? < > | 等非法字符）",
+            "增加 fuzzy fallback 匹配，含非法字符标题能成功匹配",
+            "补充匹配逻辑单元测试覆盖典型失败样例"
+          ]
+        },
+        {
+          "title": "Token 复制截断与 HTTP 剪贴板提示修复",
+          "strategy": "upstream_pr",
+          "type": "bugfix",
+          "impact": 3,
+          "effort": "S",
+          "rationale": "复制到剪贴板只拿到部分 token，且 HTTP 环境下登录失败提示误导。纯前端小改，直接改善用户上手体验。",
+          "evidence": "#3614（token 复制截断 + HTTP 下错误信息误导）",
+          "acceptance_criteria": [
+            "修复剪贴板复制截断，完整 token 被复制",
+            "在非 HTTPS 环境明确提示 clipboard API 不可用",
+            "登录失败错误信息准确反映实际原因"
+          ]
+        },
+        {
+          "title": "扫描诊断报告：暴露被跳过系统与孤儿文件夹",
+          "strategy": "upstream_pr",
+          "type": "feature",
+          "impact": 3,
+          "effort": "M",
+          "rationale": "用户反映大量系统被跳过、生成孤儿空文件夹却无从自查。增加扫描诊断日志/摘要报告，帮助用户理解跳过原因，配合 troubleshooting 文档。",
+          "evidence": "#2994（系统被跳过、生成孤儿空文件夹）",
+          "acceptance_criteria": [
+            "扫描结束输出摘要：跳过系统数量及原因",
+            "孤儿/空文件夹在报告中标记",
+            "docs troubleshooting 页补充对应自查说明"
+          ]
+        }
+      ],
+      "assessment_excerpt": "# RomM 项目分析报告\n\n## 项目定位\n\n一句话：**RomM 是一个自托管的 ROM 游戏库管理与浏览器内游玩平台**，帮玩家扫描本地游戏收藏、自动抓取元数据/封面/成就，并直接在浏览器中游玩。\n\n## 目标用户与使用场景\n\n- **核心用户**：拥有较大规模模拟器 ROM 收藏、且倾向自托管的复古游戏爱好者（README topics: `self-hosted`、`retrogaming`、`emulation`）。\n- **典型部署**：Docker / Proxmox 社区脚本（见 #3526 用户环境）等家庭服务器场景。\n- **使用场景**：\n  1. 扫描本地库并从 IGDB/ScreenScraper/MobyGames/LaunchBox 等富化元数据；\n  2. 通过 EmulatorJS/RuffleRS 在浏览器直接游玩；\n  3. 多端消费——官方/社区提供 Playnite、Android、iOS、Switch、muOS 等大量客户端（README 社区列表极长，说明其已成为一个**生态中枢**，而非单一 App）。\n\n## 用户真实痛点\n\n**用户明确抱怨的（有 issue 证据）：**\n\n- **下载文件损坏**：多碟 PSX 游戏打包 zip 无法解压（#3526，20 评论），涉及大文件（1.2GB）打包逻辑，是当前最高热度 bug。\n- **扫描健壮性差**：单个元数据 provider（Hasheous/RetroAchievements）请求失败会导致**整个扫描中断**，且无重试/超时配置（#2236）。用户还反映大量系统被跳过、生成孤儿空文件夹（#2994）。\n- **LaunchBox 抓取失效**：精确匹配算法对含 OS 非法字符、风格化标题的游戏匹配失败（#3095、#3505），缺乏模糊匹配。\n- **目录组织受限**：不支持平台级子文件夹（Hacks/Homebrew/Translations 等），大库整理困难（#2050）。\n- **模拟器兼容问题**：SegaCD 游戏在 EmulatorJS 无法运行（#2624）。\n- **Token 复制错误 + 错误信息不友好**：复制到剪贴板只拿到部分 token，且 HTTP 下登录失败提示误导（#3614）。\n\n**我推测的（材料未直接证实）：**\n\n- 大量社区第三方客户端（iOS/Android/Desktop 各有多个）暗示**官方多端体验可能存在空白或不统一**，用户在用社区方案填补——但这属推测，需进一步确认。\n- 元数据 provider 众多（6+ 个）可能带来配置复杂度，但 issue 未直接反映，材料不足。\n\n## 差距与机会\n\n以下均为**单个 PR 可覆盖**的具体改进点：\n\n- **扫描容错（对应 #2236）**：为"
+    }
+  }
+}
