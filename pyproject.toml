@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oss-scout"
+version = "0.1.0"
+description = "发现 GitHub trending 项目 → 理解真实需求 → 生成优化提案与实施简报（贡献优先，发布前人工把关）"
+requires-python = ">=3.9"
+dependencies = [
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "anthropic>=0.40",
+    "python-dotenv>=1.0",
+    "rich>=13.0",
+]
+
+[project.scripts]
+oss-scout = "oss_scout.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["oss_scout*"]
